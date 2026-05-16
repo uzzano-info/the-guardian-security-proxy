@@ -23,7 +23,20 @@ if st.button("요청 전송"):
 
         if data["status"] == "complete":
             st.success("✅ 정상 처리 완료")
-            st.text_area("마스킹된 응답:", value=data["response"], height=200)
+            
+            # 마스킹 전/후 비교 UI 추가
+            col_a, col_b = st.columns(2)
+            with col_a:
+                st.markdown("**원본 텍스트 (시뮬레이션)**")
+                st.caption("내부 에이전트가 생성한 원본 데이터")
+                # Mock 원본 데이터를 추정하여 표시 (데모용)
+                raw_sim = data["response"].replace("<KR_RRN>", "900101-1234567").replace("<KR_PHONE_NUMBER>", "010-1234-5678").replace("<PERSON>", "John Kim")
+                st.code(raw_sim, language="text")
+            with col_b:
+                st.markdown("**🛡️ 마스킹된 결과 (The Guardian)**")
+                st.caption("외부 에이전트에게 전달되는 안전한 데이터")
+                st.code(data["response"], language="text")
+                
         elif data["status"] == "paused":
             st.warning("⚠️ 고위험 요청 감지! 관리자 승인이 필요합니다.")
             st.json(data["interrupt_data"])
@@ -48,7 +61,11 @@ if "pending_thread_id" in st.session_state:
             )
             result = resp.json()
             st.success("승인 완료!")
-            st.text_area("마스킹된 응답:", value=result.get("response", ""), height=200)
+            
+            # 승인 후 결과 비교 표시
+            st.markdown("### 📋 최종 처리 결과")
+            st.code(result.get("response", ""), language="text")
+            
             del st.session_state["pending_thread_id"]
 
     with col2:
