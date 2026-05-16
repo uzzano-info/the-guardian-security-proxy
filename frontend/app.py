@@ -3,6 +3,7 @@ import requests
 import subprocess
 import time
 import socket
+import sys
 
 API_BASE = "http://localhost:8000"
 API_KEY = "guardian-secret-key-2026"
@@ -10,14 +11,15 @@ HEADERS = {"X-API-Key": API_KEY}
 
 def is_port_in_use(port: int) -> bool:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        return s.connect_ex(('localhost', port)) == 0
+        return s.connect_ex(('127.0.0.1', port)) == 0 or s.connect_ex(('0.0.0.0', port)) == 0
 
 # Streamlit Cloud 등에서 백엔드가 안 켜져있을 때 자동 실행
 if not is_port_in_use(8000):
     with st.spinner("Starting Backend Server..."):
-        # uvicorn 실행 (백그라운드)
-        subprocess.Popen(["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"])
-        time.sleep(3) # 서버가 뜰 때까지 잠시 대기
+        # uvicorn 실행 (백그라운드, 현재 파이썬 환경 사용)
+        subprocess.Popen([sys.executable, "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"])
+        time.sleep(5) # 서버가 뜰 때까지 충분히 대기
+
 
 st.set_page_config(page_title="The Guardian Dashboard", page_icon="🛡️")
 st.title("🛡️ The Guardian — 보안 관제 대시보드")
